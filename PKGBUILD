@@ -2,7 +2,7 @@
 pkgname=pakbak
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="Backs the local pacman database up when it changes"
+pkgdesc="Back up the local pacman database when it changes"
 arch=('any')
 license=('GPL')
 depends=()
