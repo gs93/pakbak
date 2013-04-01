@@ -5,6 +5,7 @@ pkgver=1.0.0
 pkgrel=1
 pkgdesc="Back up the local pacman database when it changes"
 arch=('any')
+url="https://github.com/gs93/pakbak"
 license=('GPL3')
 depends=('bash' 'findutils' 'tar' 'systemd')
 makedepends=()
