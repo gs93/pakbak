@@ -3,7 +3,7 @@
 # load configuration
 source /etc/pakbak.conf
 
-# abort when a var is empt<
+# abort when a var is empty
 [[ ! "$target_folder" || ! "$keep_days" ]] && echo "configuration seems to be broken.. abort" && exit 1
 
 # abort when target_folder isn't a folder
