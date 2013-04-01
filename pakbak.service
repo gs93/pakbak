@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up pacman database
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /usr/lib/systemd/scripts/pakbak
+RemainAfterExit=no

@@ -1,0 +1,9 @@
+[Unit]
+Description=Back up pacman database
+
+[Path]
+PathChanged=/var/lib/pacman/local
+Unit=pakbak.service
+
+[Install]
+WantedBy=multi-user.target
