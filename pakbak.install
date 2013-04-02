@@ -1,3 +1,0 @@
-post_install() {
-    echo "Remember to edit /etc/pakbak.conf and to enable pakbak.path"
-}
