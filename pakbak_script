@@ -26,6 +26,13 @@ source /etc/pakbak.conf
 # abort when keep_days contains something other than numbers or is <= 0
 [[ ! "$keep_days" =~ ^[0-9]+$ || ! "$keep_days" > 0 ]] && echo "$keep_days isn't a valid number.. abort" && exit 3
 
+# wait for pacman to exit (/var/lib/pacman/db.lck)
+lockfile="/var/lib/pacman/db.lck"
+while [[ -f "$lockfile" ]]; do
+    # TODO: check if pacman is still running
+    sleep 1s;
+done
+
 # cleanup old files
 find "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
 
