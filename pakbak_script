@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (C) 2013  Giuliano Schneider <gs93@gmx.net>
+# Copyright (C) 2015  Douglas RAILLARD <public.douglas.raillard@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,16 +16,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # load configuration
+# target_folder must contain the output directory for tar backups
+# keep_days can be empty or contain the number of days to keep the backup
+# keep_number can be empty or contain the number of backup to keep (the oldest backup will be removed when necessary)
 source /etc/pakbak.conf
-
-# abort when a var is empty
-[[ ! "$target_folder" || ! "$keep_days" ]] && echo "configuration seems to be broken.. abort" && exit 1
 
 # abort when target_folder isn't a folder
 [[ ! -d "$target_folder" ]] && echo "$target_folder isn't a folder.. abort" && exit 2
 
-# abort when keep_days contains something other than numbers or is <= 0
-[[ ! "$keep_days" =~ ^[0-9]+$ || ! "$keep_days" > 0 ]] && echo "$keep_days isn't a valid number.. abort" && exit 3
+# abort when keep_days contains something other than numbers or is <= 0 and is not empty
+[[ ( ! -z "$keep_days" ) && ( ! "$keep_days" =~ ^[0-9]+$ || ! "$keep_days" > 0 ) ]] && echo "keep_days=$keep_days isn't a valid number.. abort" && exit 3
+
+# abort when $keep_number contains something other than numbers or is <= 0 and is not empty
+[[ ( ! -z "$keep_number" ) && ( ! "$keep_number" =~ ^[0-9]+$ || ! "$keep_number" > 0 ) ]] && echo "keep_number=$keep_number isn't a valid number.. abort" && exit 3
+
 
 # wait for pacman to exit (/var/lib/pacman/db.lck)
 lockfile="/var/lib/pacman/db.lck"
@@ -33,8 +38,19 @@ while [[ -f "$lockfile" ]]; do
     sleep 1s;
 done
 
-# cleanup old files
-find "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
 
-# make the backup
-tar -cJf "$target_folder/pakbak-`date -Is`.tar.xz" "/var/lib/pacman/local"
+# make the backup before cleaning up old ones in case the backup fails
+tar -cJf "$target_folder/pakbak-`date -Is`.tar.xz" "/var/lib/pacman/local" || exit $?
+
+# cleanup old files
+if [ ! -z "$keep_days" ]; then
+    find "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
+fi;
+
+# cleanup files if there is too many of them (more than $keep_number)
+if [ ! -z "$keep_number" ]; then
+    # Increment keep_number for correct tail handling
+    let keep_number=$keep_number+1
+    find "$target_folder" -name 'pakbak-*.tar.xz' -type f -print0 | xargs -0 stat --format "%Y %n" | sort -rn | cut -d' ' -f2- | tail -n +$keep_number | xargs -d'\n' rm;
+fi;
+
