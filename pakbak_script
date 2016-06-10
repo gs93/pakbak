@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2013-2015  Giuliano Schneider <gs93@gmx.net>
+# Copyright (C) 2013-2016  Giuliano Schneider <gs93@gmx.net>
 # Copyright (C)      2015  Douglas RAILLARD <public.douglas.raillard@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -44,13 +44,13 @@ tar -cJf "$target_folder/pakbak-`date +%Y-%m-%d-%H%M%S`.tar.xz" "/var/lib/pacman
 
 # cleanup old files
 if [ ! -z "$keep_days" ]; then
-    find "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
+    find -H "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
 fi;
 
 # cleanup files if there is too many of them (more than $keep_number)
 if [ ! -z "$keep_number" ]; then
     # Increment keep_number for correct tail handling
     let keep_number=$keep_number+1
-    find "$target_folder" -name 'pakbak-*.tar.xz' -type f -print0 | xargs -0 stat --format "%Y %n" | sort -rn | cut -d' ' -f2- | tail -n +$keep_number | xargs -d'\n' rm;
+    find -H "$target_folder" -name 'pakbak-*.tar.xz' -type f -print0 | xargs -0 stat --format "%Y %n" | sort -rn | cut -d' ' -f2- | tail -n +$keep_number | xargs -d'\n' rm;
 fi;
 
