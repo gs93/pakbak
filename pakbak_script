@@ -1,8 +1,4 @@
 #!/bin/bash
-# Copyright (C) 2013-2016  Giuliano Schneider <gs93@gmx.net>
-# Copyright (C)      2015  Douglas RAILLARD <public.douglas.raillard@gmail.com>
-# Copyright (C)      2017  Sven Hettwer
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -26,10 +22,10 @@ source /etc/pakbak.conf
 [[ ! -d "$target_folder" ]] && echo "$target_folder isn't a folder.. abort" && exit 2
 
 # abort when keep_days contains something other than numbers or is <= 0 and is not empty
-[[ ( ! -z "$keep_days" ) && ( ! "$keep_days" =~ ^[0-9]+$ || ! "$keep_days" > 0 ) ]] && echo "keep_days=$keep_days isn't a valid number.. abort" && exit 3
+[[ ( -n "$keep_days" ) && ( ! "$keep_days" =~ ^[0-9]+$ || ! "$keep_days" -gt 0 ) ]] && echo "keep_days=$keep_days isn't a valid number.. abort" && exit 3
 
 # abort when $keep_number contains something other than numbers or is <= 0 and is not empty
-[[ ( ! -z "$keep_number" ) && ( ! "$keep_number" =~ ^[0-9]+$ || ! "$keep_number" > 0 ) ]] && echo "keep_number=$keep_number isn't a valid number.. abort" && exit 3
+[[ ( -n "$keep_number" ) && ( ! "$keep_number" =~ ^[0-9]+$ || ! "$keep_number" -gt 0 ) ]] && echo "keep_number=$keep_number isn't a valid number.. abort" && exit 3
 
 
 # wait for pacman to exit (/var/lib/pacman/db.lck)
@@ -41,15 +37,15 @@ done
 
 
 # make the backup before cleaning up old ones in case the backup fails
-tar -cJf "$target_folder/pakbak-`date +%Y-%m-%d-%H%M%S`.tar.xz" "/var/lib/pacman/local" || exit $?
+tar -cJf "$target_folder/pakbak-$(date +%Y-%m-%d-%H%M%S).tar.xz" "/var/lib/pacman/local" || exit $?
 
 # cleanup old files
-if [ ! -z "$keep_days" ]; then
+if [ -n "$keep_days" ]; then
     find -H "$target_folder" -name 'pakbak-*.tar.xz' -type f -mtime +$keep_days -exec rm -v {} +
 fi;
 
 # cleanup files if there is too many of them (more than $keep_number)
-if [ ! -z "$keep_number" ]; then
+if [ -n "$keep_number" ]; then
     # Increment keep_number for correct tail handling
     let keep_number=$keep_number+1
     FILES_TO_DELETE=$(find -H "$target_folder" -name 'pakbak-*.tar.xz' -type f -print0 | \
@@ -58,7 +54,7 @@ if [ ! -z "$keep_number" ]; then
                         cut -d' ' -f2- | \
                         tail -n +$keep_number)
     for FILE in ${FILES_TO_DELETE}; do
-        rm ${FILE}
+        rm -- "${FILE}"
     done
 fi;
 
